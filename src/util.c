@@ -503,6 +503,89 @@ err:
 	goto out;
 }
 #else
+
+#include <sys/un.h>
+
+/*
+ * Support a debug facility where we're not running inside a virtual machine,
+ * but on the host directly.
+ *
+ * In that case, we open an AF_UNIX socket for each channel and wait for the
+ * first connection.
+ */
+static int prepare_socket(const char *channel)
+{
+	char path[108];
+	unsigned int s;
+	struct sockaddr_un local;
+	int ret, len;
+
+	s = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (s == -1) {
+		perror("socket");
+		return -1;
+	}
+
+	ret = snprintf(path, sizeof(path), "/tmp/%s.sock", channel);
+	if (ret < 0) {
+		close(s);
+		return -1;
+	}
+
+	local.sun_family = AF_UNIX;
+	strcpy(local.sun_path, path);
+	unlink(local.sun_path);
+	len = strlen(local.sun_path) + sizeof(local.sun_family);
+
+	if (bind(s, (struct sockaddr *)&local, len) == -1) {
+		perror("bind");
+		close(s);
+		return -1;
+	}
+
+	if (listen(s, 1) == -1) {
+		perror("listen");
+		close(s);
+		return -1;
+	}
+
+	return s;
+}
+
+static int hyper_open_socket(const char *channel, int mode)
+{
+	static int init = 0;
+	static int listen[2];
+	static int channel_nr = 0;
+	int fd;
+
+	if (!init) {
+		init = 1;
+
+		/* prepare both sockets to accept connections upfront so we can
+		 * have the client open them in any order and without racing
+		 * with hyperstart */
+		listen[0] = prepare_socket("sh.hyper.channel.0");
+		if (listen[0] == -1)
+			return -1;
+		listen[1] = prepare_socket("sh.hyper.channel.1");
+		if (listen[1] == -1) {
+			close(listen[0]);
+			return -1;
+		}
+	}
+
+	fd = accept(listen[channel_nr], NULL, NULL);
+	if (fd == -1) {
+		perror("accept");
+		return -1;
+	}
+
+	channel_nr++;
+
+	return fd;
+}
+
 int hyper_open_channel(char *channel, int mode)
 {
 	struct dirent **list;
@@ -513,6 +596,10 @@ int hyper_open_channel(char *channel, int mode)
 	num = scandir("/sys/class/virtio-ports/", &list, NULL, NULL);
 	if (num < 0) {
 		perror("scan /sys/class/virtio-ports/ failed");
+		fd = hyper_open_socket(channel, mode);
+		if (fd != -1)
+			return fd;
+		perror("open fifos failed");
 		return -1;
 	}
 
