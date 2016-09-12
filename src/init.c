@@ -1296,7 +1296,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (system_mount("devpts", "/dev/pts", "devpts", MS_NOSUID| MS_NOEXEC,
-			 NULL) == -1) {
+			 "mode=620,gid=5") == -1) {
 		perror("mount devpts failed");
 		return -1;
 	}
