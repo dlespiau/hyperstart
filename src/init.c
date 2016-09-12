@@ -1331,6 +1331,20 @@ static int hyper_loop(void)
 	return 0;
 }
 
+static int system_mount(const char *source, const char *target,
+			const char *filesytemtype, unsigned long mountflags,
+			const void *data)
+{
+	/*
+	 * When running as a daemon, the various system mounts (/proc, /sys,
+	 * /dev, ...) are already mounted. Just skip mounting in that case.
+	 */
+	if (ENABLE_DAEMON)
+		return 0;
+
+	return mount(source, target, filesytemtype, mountflags, data);
+}
+
 int main(int argc, char *argv[])
 {
 	char *cmdline, *ctl_serial, *tty_serial;
@@ -1343,19 +1357,21 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (mount("proc", "/proc", "proc", MS_NOSUID| MS_NODEV| MS_NOEXEC, NULL) == -1) {
+	if (system_mount("proc", "/proc", "proc",
+			 MS_NOSUID| MS_NODEV| MS_NOEXEC, NULL) == -1) {
 		perror("mount proc failed");
 		return -1;
 	}
 
 	hyper_print_uptime();
 
-	if (mount("sysfs", "/sys", "sysfs", MS_NOSUID| MS_NODEV| MS_NOEXEC, NULL) == -1) {
+	if (system_mount("sysfs", "/sys", "sysfs",
+			 MS_NOSUID| MS_NODEV| MS_NOEXEC, NULL) == -1) {
 		perror("mount sysfs failed");
 		return -1;
 	}
 
-	if (mount("dev", "/dev", "devtmpfs", MS_NOSUID, NULL) == -1) {
+	if (system_mount("dev", "/dev", "devtmpfs", MS_NOSUID, NULL) == -1) {
 		perror("mount devtmpfs failed");
 		return -1;
 	}
@@ -1365,7 +1381,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (mount("devpts", "/dev/pts", "devpts", MS_NOSUID| MS_NOEXEC, NULL) == -1) {
+	if (system_mount("devpts", "/dev/pts", "devpts", MS_NOSUID| MS_NOEXEC,
+			 NULL) == -1) {
 		perror("mount devpts failed");
 		return -1;
 	}
