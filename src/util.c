@@ -503,6 +503,34 @@ err:
 	goto out;
 }
 #else
+/*
+ * Support the case where we're not running inside a virtual machine, but on
+ * the host directly (useful for testing!)
+ *
+ * In that case, we expect the HYPERSTART_FIFO_PATH environement variable to
+ * have two fifos setup for us with mkfifos:
+ * 	$HYPERSTART_FIFO_PATH/sh.hyper.channel.0
+ * 	$HYPERSTART_FIFO_PATH/sh.hyper.channel.1
+ */
+static int hyper_open_fifo(char *channel, int mode)
+{
+	char path[256];
+	char *base;
+	int ret;
+
+	base = getenv("HYPERSTART_FIFO_PATH");
+	if (base == NULL)
+		return -1;
+
+	ret = snprintf(path, sizeof(path), "%s/%s", base, channel);
+	if (ret < 0)
+		return -1;
+
+	/* always open the fifo in non-blocking mode so we don't wait for the
+	 * other party to open it */
+	return open(path, O_NONBLOCK | O_RDWR | O_CLOEXEC | mode);
+}
+
 int hyper_open_channel(char *channel, int mode)
 {
 	struct dirent **list;
@@ -513,6 +541,10 @@ int hyper_open_channel(char *channel, int mode)
 	num = scandir("/sys/class/virtio-ports/", &list, NULL, NULL);
 	if (num < 0) {
 		perror("scan /sys/class/virtio-ports/ failed");
+		fd = hyper_open_fifo(channel, mode);
+		if (fd != -1)
+			return fd;
+		perror("open fifos failed");
 		return -1;
 	}
 
