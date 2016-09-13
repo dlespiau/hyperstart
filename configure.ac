@@ -7,6 +7,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
 AM_EXTRA_RECURSIVE_TARGETS([initrd cbfs kernel])
 AC_CONFIG_SRCDIR([src/init.c])
 AC_CONFIG_HEADERS([config.h])
+PKG_CHECK_MODULES([SYSTEMD], [systemd])
 
 # Checks for programs.
 AC_PROG_CC
@@ -58,10 +59,22 @@ AS_IF([test "x$enable_daemon" = "xyes"],
 	[AC_DEFINE([ENABLE_DAEMON], [0], [Daemon mode disabled])])
 AM_CONDITIONAL([ENABLE_DAEMON], [test x$enable_daemon = x"yes"])
 
+AC_ARG_WITH([systemdsystemunitdir],
+            AS_HELP_STRING([--with-systemdsystemunitdir=SYSTEMD_SYSTEM_UNIT_DIR],
+                           [path to install systemd system service]),
+                           [SYSTEMD_SYSTEMUNIT=${withval}],
+                           [SYSTEMD_SYSTEMUNIT="`$PKG_CONFIG --variable=systemdsystemunitdir systemd`"])
+
+AS_IF([test -z "$SYSTEMD_SYSTEMUNIT"],[SYSTEMD_SYSTEMUNIT=no])
+AS_IF([test "x$enable_daemon" = "xno"],[SYSTEMD_SYSTEMUNIT=no])
+AC_SUBST(SYSTEMD_SYSTEMUNIT)
+AM_CONDITIONAL(SYSTEMD, test "x${SYSTEMD_SYSTEMUNIT}" != "xno" )
+
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
   build/Makefile
+  data/hyperstart.service
 ])
 AC_OUTPUT
 
@@ -70,11 +83,13 @@ AC_MSG_RESULT([
 	prefix:		${prefix}
 	Daemon mode:    ${enable_daemon}
 
-	with-vbox:	${with_vbox}
+	daemon service path:  ${SYSTEMD_SYSTEMUNIT}
 
-	compiler:          ${CC}
-	cflags:            ${CFLAGS}
-	suid cflags:       ${SUID_CFLAGS}
-	ldflags:           ${LDFLAGS}
-	suid ldflags:      ${SUID_LDFLAGS}
+	with-vbox:      ${with_vbox}
+
+	compiler:             ${CC}
+	cflags:               ${CFLAGS}
+	suid cflags:          ${SUID_CFLAGS}
+	ldflags:              ${LDFLAGS}
+	suid ldflags:         ${SUID_LDFLAGS}
 ])
