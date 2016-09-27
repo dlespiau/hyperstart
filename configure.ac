@@ -49,6 +49,15 @@ fi
 
 AM_CONDITIONAL([WITH_VBOX], [test "x$with_vbox" != "xno"])
 
+AC_ARG_ENABLE(daemon,
+	      AS_HELP_STRING([--enable-daemon], [enable daemon mode @<:@default=no@:>@]),
+	      [], [enable_daemon=no])
+
+AS_IF([test "x$enable_daemon" = "xyes"],
+	[AC_DEFINE([ENABLE_DAEMON], [1], [Daemon mode enabled])],
+	[AC_DEFINE([ENABLE_DAEMON], [0], [Daemon mode disabled])])
+AM_CONDITIONAL([ENABLE_DAEMON], [test x$enable_daemon = x"yes"])
+
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
@@ -59,6 +68,7 @@ AC_OUTPUT
 AC_MSG_RESULT([
 	${PACKAGE}  ${VERSION}
 	prefix:		${prefix}
+	Daemon mode:    ${enable_daemon}
 
 	with-vbox:	${with_vbox}
 

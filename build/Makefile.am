@@ -1,3 +1,5 @@
+#Only create initrd and kernel if build as init
+if !ENABLE_DAEMON
 all-local: initrd
 
 if WITH_VBOX
@@ -17,3 +19,5 @@ kernel-local:
 	hyperctl run --rm hyperstart-dev:latest cat /root/build/result/modules.tar >modules.tar
 	mv kernel_config kernel_config.old
 	hyperctl run --rm hyperstart-dev:latest cat /root/build/result/kernel_config >kernel_config
+
+endif
