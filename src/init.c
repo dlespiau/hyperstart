@@ -1391,7 +1391,7 @@ int main(int argc, char *argv[])
 	/* when in daemon mode (ie not the init process), we expect the base OS
 	 * already have sh, tar, modprobe, depmon and iptables* */
 	if (!ENABLE_DAEMON &&
-	    (symlink("/busybox", "/sh") < 0 ||
+	    (symlink("/busybox", "/bin/sh") < 0 ||
 	     symlink("/busybox", "/tar") < 0 ||
 	     symlink("/busybox", "/sbin/modprobe") < 0 ||
 	     symlink("/busybox", "/sbin/depmod") < 0)) {

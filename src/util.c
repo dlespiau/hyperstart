@@ -703,7 +703,7 @@ int hyper_cmd(char *cmd)
 		return -1;
 	} else {
 		fprintf(stdout, "executing cmd %s\n", cmd);
-		execlp("/busybox", "sh", "-c", cmd, NULL);
+		execlp("sh", "-c", cmd, NULL);
 	}
 
 	return -1;
