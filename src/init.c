@@ -1387,17 +1387,21 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (symlink("/busybox", "/sh") < 0 ||
-	    symlink("/busybox", "/tar") < 0 ||
-	    symlink("/busybox", "/sbin/modprobe") < 0 ||
-	    symlink("/busybox", "/sbin/depmod") < 0) {
-		perror("failed to symlink tools to /busybox");
-		return -1;
+	/* when in daemon mode (ie not the init process), we expect the base OS
+	 * already have sh, tar, modprobe, depmon and iptables* */
+	if (!ENABLE_DAEMON &&
+	    (symlink("/busybox", "/sh") < 0 ||
+	     symlink("/busybox", "/tar") < 0 ||
+	     symlink("/busybox", "/sbin/modprobe") < 0 ||
+	     symlink("/busybox", "/sbin/depmod") < 0)) {
+	    perror("failed to symlink tools to /busybox");
+	    return -1;
 	}
 
-	if (symlink("/iptables", "/sbin/iptables") < 0 ||
-	    symlink("/iptables", "/sbin/iptables-restore") < 0 ||
-	    symlink("/iptables", "/sbin/iptables-save") < 0) {
+	if (!ENABLE_DAEMON &&
+	    (symlink("/iptables", "/sbin/iptables") < 0 ||
+	     symlink("/iptables", "/sbin/iptables-restore") < 0 ||
+	     symlink("/iptables", "/sbin/iptables-save") < 0)) {
 		perror("failed to symlink tools to /iptables");
 		/* TODO disable portmapping */
 	}
