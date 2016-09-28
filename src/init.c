@@ -1392,7 +1392,7 @@ int main(int argc, char *argv[])
 	 * already have sh, tar, modprobe, depmon and iptables* */
 	if (!ENABLE_DAEMON &&
 	    (symlink("/busybox", "/bin/sh") < 0 ||
-	     symlink("/busybox", "/tar") < 0 ||
+	     symlink("/busybox", "/bin/tar") < 0 ||
 	     symlink("/busybox", "/sbin/modprobe") < 0 ||
 	     symlink("/busybox", "/sbin/depmod") < 0)) {
 	    perror("failed to symlink tools to /busybox");

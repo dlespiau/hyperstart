@@ -71,7 +71,7 @@ int hyper_list_dir(char *path)
 int hyper_copy_dir(char *src, char *dest)
 {
 	char cmd[512];
-	snprintf(cmd, sizeof(cmd), "/tar cf - -C %s . | /tar fx - -C %s", src, dest);
+	snprintf(cmd, sizeof(cmd), "tar cf - -C %s . | tar fx - -C %s", src, dest);
 
 	return hyper_cmd(cmd);
 }
