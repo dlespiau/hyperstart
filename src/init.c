@@ -1351,6 +1351,7 @@ int main(int argc, char *argv[])
 
 	if (hyper_mkdir("/dev", 0755) < 0 ||
 	    hyper_mkdir("/sys", 0755) < 0 ||
+	    hyper_mkdir("/bin", 0755) < 0 ||
 	    hyper_mkdir("/sbin", 0755) < 0 ||
 	    hyper_mkdir("/proc", 0755) < 0) {
 		perror("create basic directory failed");
