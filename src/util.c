@@ -82,7 +82,7 @@ void hyper_sync_time_hctosys() {
 	if (pid < 0) {
 		perror("fail to fork to copy directory");
 	} else if (pid == 0) {
-		execlp("/busybox", "hwclock", "-s", NULL);
+		execlp("hwclock", "-s", NULL);
 		perror("exec hwclock -s command failed");
 		exit(-1);
 	}

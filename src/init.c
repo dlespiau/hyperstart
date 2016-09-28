@@ -1394,7 +1394,8 @@ int main(int argc, char *argv[])
 	    (symlink("/busybox", "/bin/sh") < 0 ||
 	     symlink("/busybox", "/bin/tar") < 0 ||
 	     symlink("/busybox", "/sbin/modprobe") < 0 ||
-	     symlink("/busybox", "/sbin/depmod") < 0)) {
+	     symlink("/busybox", "/sbin/depmod") < 0 ||
+	     symlink("/busybox", "/sbin/hwclock") < 0)) {
 	    perror("failed to symlink tools to /busybox");
 	    return -1;
 	}
